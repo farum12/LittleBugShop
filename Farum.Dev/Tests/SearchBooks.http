@@ -1,0 +1,62 @@
+### Get all products (no filters)
+GET http://localhost:5052/api/products
+
+### Search by term - "Harry Potter"
+GET http://localhost:5052/api/products?searchTerm=Harry Potter
+
+### Search by term - "dystopian"
+GET http://localhost:5052/api/products?searchTerm=dystopian
+
+### Filter by Genre - Fantasy
+GET http://localhost:5052/api/products?genre=Fantasy
+
+### Filter by Genre - Dystopian Fiction
+GET http://localhost:5052/api/products?genre=Dystopian Fiction
+
+### Filter by Genre - Young Adult
+GET http://localhost:5052/api/products?genre=Young Adult
+
+### Filter by Author - J. K. Rowling
+GET http://localhost:5052/api/products?author=J. K. Rowling
+
+### Filter by Author - Fyodor Dostoevsky
+GET http://localhost:5052/api/products?author=Fyodor Dostoevsky
+
+### Filter by Author - Suzanne Collins
+GET http://localhost:5052/api/products?author=Suzanne Collins
+
+### Filter by Price Range - Under $15
+GET http://localhost:5052/api/products?maxPrice=15
+
+### Filter by Price Range - Over $30
+GET http://localhost:5052/api/products?minPrice=30
+
+### Filter by Price Range - Between $10 and $20
+GET http://localhost:5052/api/products?minPrice=10&maxPrice=20
+
+### Combined Filters - Fantasy books under $25
+GET http://localhost:5052/api/products?genre=Fantasy&maxPrice=25
+
+### Combined Filters - Search "Tolkien" and sort by price (ascending)
+GET http://localhost:5052/api/products?searchTerm=Tolkien&sortBy=price&sortOrder=asc
+
+### Combined Filters - Young Adult books over $35, sorted by name
+GET http://localhost:5052/api/products?genre=Young Adult&minPrice=35&sortBy=name
+
+### Sort by Author (A-Z)
+GET http://localhost:5052/api/products?sortBy=author&sortOrder=asc
+
+### Sort by Author (Z-A)
+GET http://localhost:5052/api/products?sortBy=author&sortOrder=desc
+
+### Sort by Price (Low to High)
+GET http://localhost:5052/api/products?sortBy=price&sortOrder=asc
+
+### Sort by Price (High to Low)
+GET http://localhost:5052/api/products?sortBy=price&sortOrder=desc
+
+### Sort by Genre
+GET http://localhost:5052/api/products?sortBy=genre&sortOrder=asc
+
+### Advanced - Search "fiction" in Dystopian Fiction genre, price $10-$20, sorted by price
+GET http://localhost:5052/api/products?searchTerm=fiction&genre=Dystopian Fiction&minPrice=10&maxPrice=20&sortBy=price&sortOrder=asc

@@ -1,0 +1,339 @@
+@WebApplication1_HostAddress = http://localhost:5052
+
+### Login as User
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Save user token
+@userToken = <paste-token-here>
+
+### Login as User2
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User2",
+  "password": "password2"
+}
+
+### Save user2 token
+@user2Token = <paste-token-here>
+
+### Login as Admin
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Save admin token
+@adminToken = <paste-token-here>
+
+### ========== CREATE REVIEWS ==========
+
+### User creates review for Product 17 (without purchase)
+POST {{WebApplication1_HostAddress}}/api/products/17/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "reviewText": "Amazing book! The magic system is so well thought out and the characters are incredibly well developed."
+}
+
+### User2 creates review for Product 17
+POST {{WebApplication1_HostAddress}}/api/products/17/reviews
+Authorization: Bearer {{user2Token}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "reviewText": "Great story, but a bit slow in the middle."
+}
+
+### Create order to get verified purchase (User buys Product 18)
+POST {{WebApplication1_HostAddress}}/api/orders/place
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 18,
+      "quantity": 1
+    }
+  ]
+}
+
+### User creates review with verified purchase (Product 18)
+POST {{WebApplication1_HostAddress}}/api/products/18/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "reviewText": "Best book in the series! The plot twists kept me on the edge of my seat. Verified buyer here!"
+}
+
+### User updates their existing review for Product 17
+POST {{WebApplication1_HostAddress}}/api/products/17/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "reviewText": "Updated review: Still great, but I noticed some pacing issues on second read."
+}
+
+### Try to create review without auth (should fail)
+POST {{WebApplication1_HostAddress}}/api/products/19/reviews
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "reviewText": "This should fail"
+}
+
+### Try to create review with invalid rating (should fail)
+POST {{WebApplication1_HostAddress}}/api/products/19/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "rating": 6,
+  "reviewText": "Invalid rating"
+}
+
+### Create review with rating only (no text)
+POST {{WebApplication1_HostAddress}}/api/products/19/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "rating": 3
+}
+
+### Add more reviews for testing filters
+POST {{WebApplication1_HostAddress}}/api/products/17/reviews
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "rating": 3,
+  "reviewText": "It was okay, not my favorite in the series."
+}
+
+### ========== GET REVIEWS ==========
+
+### Get all reviews for Product 17
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews
+
+### Get reviews sorted by rating (ascending)
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews?sortBy=rating&sortOrder=asc
+
+### Get reviews sorted by rating (descending)
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews?sortBy=rating&sortOrder=desc
+
+### Get reviews sorted by date (newest first)
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews?sortBy=date&sortOrder=desc
+
+### Get reviews sorted by helpful count
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews?sortBy=helpful&sortOrder=desc
+
+### Filter: Only 5-star reviews
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews?rating=5
+
+### Filter: Only 3-star reviews
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews?rating=3
+
+### Filter: Only verified purchases
+GET {{WebApplication1_HostAddress}}/api/products/18/reviews?verifiedOnly=true
+
+### Get reviews for product with no reviews
+GET {{WebApplication1_HostAddress}}/api/products/1/reviews
+
+### Get my review for Product 17
+GET {{WebApplication1_HostAddress}}/api/products/17/my-review
+Authorization: Bearer {{userToken}}
+
+### Try to get my review when not logged in (should fail)
+GET {{WebApplication1_HostAddress}}/api/products/17/my-review
+
+### Get my review for product I haven't reviewed (should fail)
+GET {{WebApplication1_HostAddress}}/api/products/20/my-review
+Authorization: Bearer {{userToken}}
+
+### Save review ID from response
+@reviewId = <paste-review-id-here>
+
+### Get specific review
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews/{{reviewId}}
+
+### ========== HELPFUL MARKS ==========
+
+### User marks review as helpful
+POST {{WebApplication1_HostAddress}}/api/reviews/{{reviewId}}/helpful
+Authorization: Bearer {{userToken}}
+
+### Get reviews to see helpful count increased
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews
+
+### User2 also marks review as helpful
+POST {{WebApplication1_HostAddress}}/api/reviews/{{reviewId}}/helpful
+Authorization: Bearer {{user2Token}}
+
+### User toggles helpful off (removes mark)
+POST {{WebApplication1_HostAddress}}/api/reviews/{{reviewId}}/helpful
+Authorization: Bearer {{userToken}}
+
+### Try to mark helpful without auth (should fail)
+POST {{WebApplication1_HostAddress}}/api/reviews/{{reviewId}}/helpful
+
+### ========== DELETE REVIEWS ==========
+
+### User deletes their own review
+DELETE {{WebApplication1_HostAddress}}/api/products/19/reviews/<review-id-to-delete>
+Authorization: Bearer {{userToken}}
+
+### User tries to delete someone else's review (should fail)
+DELETE {{WebApplication1_HostAddress}}/api/products/17/reviews/{{reviewId}}
+Authorization: Bearer {{userToken}}
+
+### Admin can delete any review
+DELETE {{WebApplication1_HostAddress}}/api/products/17/reviews/{{reviewId}}
+Authorization: Bearer {{adminToken}}
+
+### ========== ADMIN MODERATION ==========
+
+### Admin hides inappropriate review
+PUT {{WebApplication1_HostAddress}}/api/products/17/reviews/{{reviewId}}/moderate
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isHidden": true
+}
+
+### Get reviews (hidden review should not appear)
+GET {{WebApplication1_HostAddress}}/api/products/17/reviews
+
+### Admin unhides review
+PUT {{WebApplication1_HostAddress}}/api/products/17/reviews/{{reviewId}}/moderate
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isHidden": false
+}
+
+### User tries to moderate review (should fail)
+PUT {{WebApplication1_HostAddress}}/api/products/17/reviews/{{reviewId}}/moderate
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "isHidden": true
+}
+
+### Admin gets all reviews (including hidden)
+GET {{WebApplication1_HostAddress}}/api/admin/reviews?includeHidden=true
+Authorization: Bearer {{adminToken}}
+
+### Admin gets all reviews for specific product
+GET {{WebApplication1_HostAddress}}/api/admin/reviews?productId=17
+Authorization: Bearer {{adminToken}}
+
+### User tries to access admin endpoint (should fail)
+GET {{WebApplication1_HostAddress}}/api/admin/reviews
+Authorization: Bearer {{userToken}}
+
+### ========== PRODUCT LISTINGS WITH RATINGS ==========
+
+### Get all products (should include averageRating and reviewCount)
+GET {{WebApplication1_HostAddress}}/api/products
+
+### Get specific product with ratings
+GET {{WebApplication1_HostAddress}}/api/products/17
+
+### Get product with no reviews (rating should be 0)
+GET {{WebApplication1_HostAddress}}/api/products/1
+
+### ========== COMPLETE WORKFLOW TEST ==========
+
+### 1. User places order
+POST {{WebApplication1_HostAddress}}/api/orders/place
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 20,
+      "quantity": 1
+    }
+  ]
+}
+
+### 2. User creates verified review
+POST {{WebApplication1_HostAddress}}/api/products/20/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "reviewText": "Absolutely loved this book! The character development is outstanding. Verified purchase badge should be visible!"
+}
+
+### 3. Check product rating updated
+GET {{WebApplication1_HostAddress}}/api/products/20
+
+### 4. Other users mark it as helpful
+POST {{WebApplication1_HostAddress}}/api/reviews/<new-review-id>/helpful
+Authorization: Bearer {{user2Token}}
+
+### 5. View all reviews sorted by helpful
+GET {{WebApplication1_HostAddress}}/api/products/20/reviews?sortBy=helpful&sortOrder=desc
+
+### ========== EDGE CASES ==========
+
+### Create multiple reviews with different ratings for statistics
+POST {{WebApplication1_HostAddress}}/api/products/15/reviews
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "rating": 5,
+  "reviewText": "Perfect book!"
+}
+
+###
+POST {{WebApplication1_HostAddress}}/api/products/15/reviews
+Authorization: Bearer {{user2Token}}
+Content-Type: application/json
+
+{
+  "rating": 4,
+  "reviewText": "Very good!"
+}
+
+###
+POST {{WebApplication1_HostAddress}}/api/products/15/reviews
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "rating": 3,
+  "reviewText": "It's alright"
+}
+
+### Check average rating calculation (should be 4.0)
+GET {{WebApplication1_HostAddress}}/api/products/15/reviews

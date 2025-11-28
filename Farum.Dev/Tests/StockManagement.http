@@ -1,0 +1,149 @@
+@WebApplication1_HostAddress = http://localhost:5052
+
+### Login as Admin to get token
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Save the token from login response
+@adminToken = <paste-token-here>
+
+### Login as regular user
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Save the token from login response
+@userToken = <paste-token-here>
+
+### Check product availability (no auth required)
+GET {{WebApplication1_HostAddress}}/api/products/1/availability?quantity=5
+
+### Check product availability with larger quantity
+GET {{WebApplication1_HostAddress}}/api/products/34/availability?quantity=10
+
+### Check out of stock product (Product 34 - The Fault in Our Stars has 0 stock)
+GET {{WebApplication1_HostAddress}}/api/products/34/availability?quantity=1
+
+### Check low stock product (Product 35 - Looking for Alaska has 2 stock)
+GET {{WebApplication1_HostAddress}}/api/products/35/availability?quantity=1
+
+### Admin: Set stock quantity to specific value
+PUT {{WebApplication1_HostAddress}}/api/products/1/stock
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "quantity": 100
+}
+
+### Admin: Increase stock
+POST {{WebApplication1_HostAddress}}/api/products/2/stock/increase
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "amount": 50
+}
+
+### Admin: Decrease stock
+POST {{WebApplication1_HostAddress}}/api/products/2/stock/decrease
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "amount": 10
+}
+
+### Admin: Try to decrease more stock than available (should fail)
+POST {{WebApplication1_HostAddress}}/api/products/35/stock/decrease
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "amount": 100
+}
+
+### User: Try to increase stock (should fail - forbidden)
+POST {{WebApplication1_HostAddress}}/api/products/1/stock/increase
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "amount": 10
+}
+
+### Place order with sufficient stock (User ID 2)
+POST {{WebApplication1_HostAddress}}/api/orders/place
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 15,
+      "quantity": 2
+    },
+    {
+      "productId": 16,
+      "quantity": 1
+    }
+  ]
+}
+
+### Check stock after order (should be decreased)
+GET {{WebApplication1_HostAddress}}/api/products/15/availability?quantity=1
+
+### Try to order more than available stock (should fail)
+POST {{WebApplication1_HostAddress}}/api/orders/place
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 34,
+      "quantity": 1
+    }
+  ]
+}
+
+### Try to order product with low stock - more than available
+POST {{WebApplication1_HostAddress}}/api/orders/place
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 35,
+      "quantity": 5
+    }
+  ]
+}
+
+### Get all products to see stock status
+GET {{WebApplication1_HostAddress}}/api/products
+
+### Admin: Restock out of stock product
+POST {{WebApplication1_HostAddress}}/api/products/34/stock/increase
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "amount": 25
+}
+
+### Verify restocked product is now available
+GET {{WebApplication1_HostAddress}}/api/products/34/availability?quantity=10

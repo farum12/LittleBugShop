@@ -1,0 +1,160 @@
+### Variables
+@baseUrl = http://localhost:5052
+@adminToken = YOUR_ADMIN_TOKEN_HERE
+@userToken = YOUR_USER_TOKEN_HERE
+@user2Token = YOUR_USER2_TOKEN_HERE
+
+###########################################
+# REGISTRATION TESTS
+###########################################
+
+### Register - Full Profile
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "newuser",
+  "password": "password123",
+  "email": "newuser@example.com",
+  "firstName": "New",
+  "lastName": "User",
+  "phoneNumber": "+1-555-1234"
+}
+
+### Register - Minimal (Username & Password Only)
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "minimaluser",
+  "password": "password123"
+}
+
+### Register - With Email Only
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "emailuser",
+  "password": "password123",
+  "email": "emailuser@example.com"
+}
+
+### Register - Duplicate Username (Should Fail)
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "password123"
+}
+
+### Register - Username Too Short (Should Fail)
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "ab",
+  "password": "password123"
+}
+
+### Register - Password Too Short (Should Fail)
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": "12345"
+}
+
+### Register - Empty Username (Should Fail)
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "",
+  "password": "password123"
+}
+
+### Register - Empty Password (Should Fail)
+POST {{baseUrl}}/api/users/register
+Content-Type: application/json
+
+{
+  "username": "testuser",
+  "password": ""
+}
+
+###########################################
+# LOGIN TESTS
+###########################################
+
+### Login - Admin
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Login - Regular User
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Login - User2
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User2",
+  "password": "password2"
+}
+
+### Login - Wrong Password (Should Fail)
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "wrongpassword"
+}
+
+### Login - Non-Existent User (Should Fail)
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "nonexistent",
+  "password": "password123"
+}
+
+### Login - Empty Username (Should Fail)
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "",
+  "password": "password123"
+}
+
+### Login - Empty Password (Should Fail)
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": ""
+}
+
+###########################################
+# LOGOUT TEST
+###########################################
+
+### Logout
+POST {{baseUrl}}/api/users/logout

@@ -1,0 +1,114 @@
+### Place an Order - Single Book
+POST http://localhost:5052/api/orders/place
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2
+    }
+  ]
+}
+
+### Place an Order - Multiple Books (Shopping Cart)
+POST http://localhost:5052/api/orders/place
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 2
+    },
+    {
+      "productId": 2,
+      "quantity": 1
+    },
+    {
+      "productId": 15,
+      "quantity": 3
+    }
+  ]
+}
+
+### Place an Order - User 2 buys Harry Potter series
+POST http://localhost:5052/api/orders/place
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 17,
+      "quantity": 1
+    },
+    {
+      "productId": 18,
+      "quantity": 1
+    },
+    {
+      "productId": 19,
+      "quantity": 1
+    }
+  ]
+}
+
+### Get all orders
+GET http://localhost:5052/api/orders
+
+### Get specific order
+GET http://localhost:5052/api/orders/1
+
+### Invalid - User doesn't exist
+POST http://localhost:5052/api/orders/place
+Content-Type: application/json
+
+{
+  "userId": 999,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 1
+    }
+  ]
+}
+
+### Invalid - Product doesn't exist
+POST http://localhost:5052/api/orders/place
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "items": [
+    {
+      "productId": 999,
+      "quantity": 1
+    }
+  ]
+}
+
+### Invalid - Quantity is zero
+POST http://localhost:5052/api/orders/place
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "items": [
+    {
+      "productId": 1,
+      "quantity": 0
+    }
+  ]
+}
+
+### Invalid - Empty items array
+POST http://localhost:5052/api/orders/place
+Content-Type: application/json
+
+{
+  "userId": 1,
+  "items": []
+}

@@ -1,0 +1,55 @@
+### Variables
+@baseUrl = http://localhost:5052
+@adminToken = YOUR_ADMIN_TOKEN
+@userToken = YOUR_USER_TOKEN
+@user2Token = YOUR_USER2_TOKEN
+
+### Login as Admin
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Login as User
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Login as User2
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User2",
+  "password": "password2"
+}
+
+###########################################
+# SESSION ENDPOINT TESTS
+###########################################
+
+### Get Session - Admin User
+GET {{baseUrl}}/api/session
+Authorization: Bearer {{adminToken}}
+
+### Get Session - Regular User
+GET {{baseUrl}}/api/session
+Authorization: Bearer {{userToken}}
+
+### Get Session - User2
+GET {{baseUrl}}/api/session
+Authorization: Bearer {{user2Token}}
+
+### Get Session - No Token (Should Fail)
+GET {{baseUrl}}/api/session
+
+### Get Session - Invalid Token (Should Fail)
+GET {{baseUrl}}/api/session
+Authorization: Bearer invalid_token_here

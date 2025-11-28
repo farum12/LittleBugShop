@@ -1,0 +1,708 @@
+### Variables
+@baseUrl = http://localhost:5052
+@adminToken = YOUR_ADMIN_TOKEN
+@userToken = YOUR_USER_TOKEN
+@user2Token = YOUR_USER2_TOKEN
+
+### Login as Admin
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Login as User
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Login as User2
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User2",
+  "password": "password2"
+}
+
+###########################################
+# PAYMENT METHODS MANAGEMENT
+###########################################
+
+### Get All Payment Methods (User)
+GET {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+
+### Get Specific Payment Method
+GET {{baseUrl}}/api/payment-methods/3
+Authorization: Bearer {{userToken}}
+
+### Add Credit Card - Success Card (ends in 0000)
+POST {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "type": 0,
+  "cardHolderName": "John Doe",
+  "cardNumber": "4532123456780000",
+  "expiryMonth": "12",
+  "expiryYear": "2028",
+  "cvv": "123"
+}
+
+### Add Credit Card - Failure Card (ends in 1111)
+POST {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "type": 0,
+  "cardHolderName": "John Doe",
+  "cardNumber": "4532123456781111",
+  "expiryMonth": "06",
+  "expiryYear": "2027",
+  "cvv": "456"
+}
+
+### Add Debit Card - Timeout Card (ends in 2222)
+POST {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "type": 1,
+  "cardHolderName": "John Doe",
+  "cardNumber": "5432167890122222",
+  "expiryMonth": "03",
+  "expiryYear": "2029",
+  "cvv": "789"
+}
+
+### Add PayPal Account
+POST {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "type": 2,
+  "payPalEmail": "john.doe.test@example.com"
+}
+
+### Add PayPal - Failure Email
+POST {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "type": 2,
+  "payPalEmail": "fail@example.com"
+}
+
+### Add Card - Invalid CVV (Should Fail)
+POST {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "type": 0,
+  "cardHolderName": "John Doe",
+  "cardNumber": "4532123456780000",
+  "expiryMonth": "12",
+  "expiryYear": "2028",
+  "cvv": "12"
+}
+
+### Add Card - Missing Card Number (Should Fail)
+POST {{baseUrl}}/api/payment-methods
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "type": 0,
+  "cardHolderName": "John Doe",
+  "expiryMonth": "12",
+  "expiryYear": "2028",
+  "cvv": "123"
+}
+
+### Update Payment Method - Change Expiry
+PUT {{baseUrl}}/api/payment-methods/3
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "cardHolderName": "John Doe",
+  "expiryMonth": "12",
+  "expiryYear": "2030"
+}
+
+### Set Default Payment Method
+PUT {{baseUrl}}/api/payment-methods/3/set-default
+Authorization: Bearer {{userToken}}
+
+### Delete Payment Method
+DELETE {{baseUrl}}/api/payment-methods/5
+Authorization: Bearer {{userToken}}
+
+###########################################
+# TWO-STEP CHECKOUT - SUCCESSFUL FLOW
+###########################################
+
+### Step 1: Add Items to Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 17,
+  "quantity": 2
+}
+
+###
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 15,
+  "quantity": 1
+}
+
+### Apply Coupon (Optional)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "SAVE10"
+}
+
+### View Cart Before Order
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Step 2: Create Order (Reserves Stock, Keeps Cart)
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "shippingAddressId": 2
+}
+
+### View Pending Orders
+GET {{baseUrl}}/api/orders/pending
+Authorization: Bearer {{userToken}}
+
+### Step 3: Process Payment with Success Card
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "paymentMethodId": 3
+}
+
+### Verify Cart is Cleared
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### View My Orders
+GET {{baseUrl}}/api/orders/my-orders
+Authorization: Bearer {{userToken}}
+
+### View My Transactions
+GET {{baseUrl}}/api/payments/transactions
+Authorization: Bearer {{userToken}}
+
+###########################################
+# PAYMENT FAILURE SCENARIOS
+###########################################
+
+### Setup: Add Items to Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 1
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "shippingAddressId": 2
+}
+
+### Attempt Payment with Insufficient Funds Card (1111)
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 2,
+  "paymentMethodId": 4
+}
+
+### Verify Cart Still Has Items (Not Cleared on Failure)
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Retry Payment with Success Card (0000)
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 2,
+  "paymentMethodId": 3
+}
+
+### Verify Cart Cleared After Successful Retry
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+###########################################
+# PAYMENT FAILURE - NETWORK TIMEOUT
+###########################################
+
+### Setup Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 5,
+  "quantity": 2
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Try Payment with Timeout Card (2222)
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 3,
+  "paymentMethodId": 6
+}
+
+###########################################
+# PAYMENT FAILURE - FRAUD DETECTION
+###########################################
+
+### Setup Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 10,
+  "quantity": 1
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Try Payment with Fraud Card (3333)
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 4,
+  "paymentMethodId": 7
+}
+
+###########################################
+# AMOUNT-BASED FAILURE SCENARIOS
+###########################################
+
+### Add Items Totaling $666.00 (Fails)
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{user2Token}}
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 60
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{user2Token}}
+Content-Type: application/json
+
+{}
+
+### Try Payment - Should Fail Due to Amount
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{user2Token}}
+Content-Type: application/json
+
+{
+  "orderId": 5,
+  "paymentMethodId": 6
+}
+
+###########################################
+# ORDER CANCELLATION
+###########################################
+
+### Setup Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 8,
+  "quantity": 1
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Cancel Order Before Payment
+DELETE {{baseUrl}}/api/orders/6/cancel
+Authorization: Bearer {{userToken}}
+
+### Verify Stock Restored
+GET {{baseUrl}}/api/products/8
+Authorization: Bearer {{userToken}}
+
+###########################################
+# ORDER EXPIRATION SCENARIO
+###########################################
+
+### Note: This would require waiting 15 minutes or manually adjusting ExpiresAt in database
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Wait 15 minutes or manually set ExpiresAt to past time...
+
+### Try to Pay Expired Order (Should Fail)
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 7,
+  "paymentMethodId": 3
+}
+
+###########################################
+# PAYPAL PAYMENT SCENARIOS
+###########################################
+
+### Setup Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 12,
+  "quantity": 1
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Pay with PayPal - Success
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 8,
+  "paymentMethodId": 5
+}
+
+### Setup Another Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 13,
+  "quantity": 1
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Pay with PayPal - Failure (email contains "fail")
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 9,
+  "paymentMethodId": 9
+}
+
+###########################################
+# ADMIN - REFUND OPERATIONS
+###########################################
+
+### Admin: View All Transactions
+GET {{baseUrl}}/api/payments/admin/transactions
+Authorization: Bearer {{adminToken}}
+
+### Admin: View Only Completed Transactions
+GET {{baseUrl}}/api/payments/admin/transactions?status=1
+Authorization: Bearer {{adminToken}}
+
+### Admin: View Only Failed Transactions
+GET {{baseUrl}}/api/payments/admin/transactions?status=2
+Authorization: Bearer {{adminToken}}
+
+### Admin: Process Full Refund
+POST {{baseUrl}}/api/payments/refund
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "transactionId": "TXN_12345678",
+  "amount": 45.90,
+  "reason": "Customer requested refund"
+}
+
+### Admin: Process Partial Refund
+POST {{baseUrl}}/api/payments/refund
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "transactionId": "TXN_12345678",
+  "amount": 10.00,
+  "reason": "Partial refund for damaged item"
+}
+
+### Admin: Payment Statistics
+GET {{baseUrl}}/api/payments/admin/statistics
+Authorization: Bearer {{adminToken}}
+
+###########################################
+# EDGE CASES & ERROR SCENARIOS
+###########################################
+
+### Try to Create Order with Empty Cart
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Try to Pay for Non-Existent Order
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 999,
+  "paymentMethodId": 3
+}
+
+### Try to Pay with Non-Existent Payment Method
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "paymentMethodId": 999
+}
+
+### Try to Pay for Someone Else's Order
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "paymentMethodId": 3
+}
+
+### Try to Pay Already Completed Order
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 1,
+  "paymentMethodId": 3
+}
+
+### Try to Cancel Already Paid Order
+DELETE {{baseUrl}}/api/orders/1/cancel
+Authorization: Bearer {{userToken}}
+
+### Regular User Tries to Refund (Should Fail)
+POST {{baseUrl}}/api/payments/refund
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "transactionId": "TXN_12345678",
+  "amount": 10.00,
+  "reason": "Test"
+}
+
+### Regular User Tries to View All Transactions (Should Fail)
+GET {{baseUrl}}/api/payments/admin/transactions
+Authorization: Bearer {{userToken}}
+
+### Try to Delete Payment Method with Pending Order
+DELETE {{baseUrl}}/api/payment-methods/3
+Authorization: Bearer {{userToken}}
+
+###########################################
+# INTEGRATION WITH COUPONS
+###########################################
+
+### Setup Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 20,
+  "quantity": 2
+}
+
+### Apply Coupon
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "WINTER20"
+}
+
+### Verify Discount Applied
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Create Order with Discount
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Complete Payment
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 10,
+  "paymentMethodId": 3
+}
+
+### Verify Coupon Usage Tracked
+GET {{baseUrl}}/api/coupons/admin/coupons/3/usage
+Authorization: Bearer {{adminToken}}
+
+###########################################
+# MULTIPLE PAYMENT RETRIES
+###########################################
+
+### Setup Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 25,
+  "quantity": 1
+}
+
+### Create Order
+POST {{baseUrl}}/api/orders/create
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{}
+
+### Attempt 1: Insufficient Funds
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 11,
+  "paymentMethodId": 4
+}
+
+### Attempt 2: Network Timeout
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 11,
+  "paymentMethodId": 6
+}
+
+### Attempt 3: Fraud Detection
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 11,
+  "paymentMethodId": 7
+}
+
+### Attempt 4: Finally Success
+POST {{baseUrl}}/api/payments/process
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "orderId": 11,
+  "paymentMethodId": 3
+}
+
+### View Transaction History (All 4 Attempts)
+GET {{baseUrl}}/api/payments/transactions
+Authorization: Bearer {{userToken}}

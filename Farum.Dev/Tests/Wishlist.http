@@ -1,0 +1,201 @@
+### Variables
+@baseUrl = http://localhost:5052
+@adminToken = YOUR_ADMIN_TOKEN
+@userToken = YOUR_USER_TOKEN
+@user2Token = YOUR_USER2_TOKEN
+
+### Login as User
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Login as User2
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User2",
+  "password": "password2"
+}
+
+###########################################
+# WISHLIST - GET & COUNT
+###########################################
+
+### Get Wishlist
+GET {{baseUrl}}/api/wishlist
+Authorization: Bearer {{userToken}}
+
+### Get Wishlist Count
+GET {{baseUrl}}/api/wishlist/count
+Authorization: Bearer {{userToken}}
+
+### Check if Product is in Wishlist - Product 17 (Harry Potter)
+GET {{baseUrl}}/api/wishlist/check/17
+Authorization: Bearer {{userToken}}
+
+### Check if Product is in Wishlist - Product 1 (Great Gatsby)
+GET {{baseUrl}}/api/wishlist/check/1
+Authorization: Bearer {{userToken}}
+
+###########################################
+# WISHLIST - ADD ITEMS
+###########################################
+
+### Add Product to Wishlist - Harry Potter Sorcerer's Stone (ID: 17)
+POST {{baseUrl}}/api/wishlist/items/17
+Authorization: Bearer {{userToken}}
+
+### Add Product to Wishlist - The Hobbit (ID: 15)
+POST {{baseUrl}}/api/wishlist/items/15
+Authorization: Bearer {{userToken}}
+
+### Add Product to Wishlist - 1984 (ID: 3)
+POST {{baseUrl}}/api/wishlist/items/3
+Authorization: Bearer {{userToken}}
+
+### Add Product to Wishlist - The Great Gatsby (ID: 1)
+POST {{baseUrl}}/api/wishlist/items/1
+Authorization: Bearer {{userToken}}
+
+### Add Product to Wishlist - Pride and Prejudice (ID: 5)
+POST {{baseUrl}}/api/wishlist/items/5
+Authorization: Bearer {{userToken}}
+
+### Try to Add Same Product Again (Should Fail)
+POST {{baseUrl}}/api/wishlist/items/17
+Authorization: Bearer {{userToken}}
+
+### Add Non-Existent Product (Should Fail)
+POST {{baseUrl}}/api/wishlist/items/9999
+Authorization: Bearer {{userToken}}
+
+###########################################
+# WISHLIST - REMOVE ITEMS
+###########################################
+
+### Remove Product from Wishlist - Pride and Prejudice (ID: 5)
+DELETE {{baseUrl}}/api/wishlist/items/5
+Authorization: Bearer {{userToken}}
+
+### Try to Remove Product Not in Wishlist (Should Fail)
+DELETE {{baseUrl}}/api/wishlist/items/10
+Authorization: Bearer {{userToken}}
+
+###########################################
+# WISHLIST - MOVE TO CART
+###########################################
+
+### Get Current Cart (Before Move)
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Move All Wishlist Items to Cart
+POST {{baseUrl}}/api/wishlist/move-to-cart
+Authorization: Bearer {{userToken}}
+
+### Get Cart After Move
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Get Wishlist After Move (Should Be Empty)
+GET {{baseUrl}}/api/wishlist
+Authorization: Bearer {{userToken}}
+
+### Try to Move Empty Wishlist (Should Fail)
+POST {{baseUrl}}/api/wishlist/move-to-cart
+Authorization: Bearer {{userToken}}
+
+###########################################
+# WISHLIST - CLEAR
+###########################################
+
+### Add Some Items First
+POST {{baseUrl}}/api/wishlist/items/17
+Authorization: Bearer {{userToken}}
+
+###
+POST {{baseUrl}}/api/wishlist/items/15
+Authorization: Bearer {{userToken}}
+
+###
+POST {{baseUrl}}/api/wishlist/items/3
+Authorization: Bearer {{userToken}}
+
+### Get Wishlist Before Clear
+GET {{baseUrl}}/api/wishlist
+Authorization: Bearer {{userToken}}
+
+### Clear Wishlist
+DELETE {{baseUrl}}/api/wishlist
+Authorization: Bearer {{userToken}}
+
+### Get Wishlist After Clear (Should Be Empty)
+GET {{baseUrl}}/api/wishlist
+Authorization: Bearer {{userToken}}
+
+### Clear Already Empty Wishlist
+DELETE {{baseUrl}}/api/wishlist
+Authorization: Bearer {{userToken}}
+
+###########################################
+# WISHLIST - OUT OF STOCK SCENARIOS
+###########################################
+
+### Add Out of Stock Product - The Fault in Our Stars (ID: 34, Stock: 0)
+POST {{baseUrl}}/api/wishlist/items/34
+Authorization: Bearer {{userToken}}
+
+### Add Low Stock Product - Looking for Alaska (ID: 35, Stock: 2)
+POST {{baseUrl}}/api/wishlist/items/35
+Authorization: Bearer {{userToken}}
+
+### Get Wishlist to See Stock Status
+GET {{baseUrl}}/api/wishlist
+Authorization: Bearer {{userToken}}
+
+### Move to Cart (Out of Stock Items Should Be Skipped)
+POST {{baseUrl}}/api/wishlist/move-to-cart
+Authorization: Bearer {{userToken}}
+
+###########################################
+# WISHLIST - USER2 SCENARIOS
+###########################################
+
+### User2 - Get Empty Wishlist
+GET {{baseUrl}}/api/wishlist
+Authorization: Bearer {{user2Token}}
+
+### User2 - Add Products
+POST {{baseUrl}}/api/wishlist/items/24
+Authorization: Bearer {{user2Token}}
+
+###
+POST {{baseUrl}}/api/wishlist/items/25
+Authorization: Bearer {{user2Token}}
+
+###
+POST {{baseUrl}}/api/wishlist/items/26
+Authorization: Bearer {{user2Token}}
+
+### User2 - Get Wishlist
+GET {{baseUrl}}/api/wishlist
+Authorization: Bearer {{user2Token}}
+
+### User2 - Get Count
+GET {{baseUrl}}/api/wishlist/count
+Authorization: Bearer {{user2Token}}
+
+###########################################
+# AUTHORIZATION TESTS
+###########################################
+
+### No Token - Get Wishlist (Should Fail)
+GET {{baseUrl}}/api/wishlist
+
+### No Token - Add to Wishlist (Should Fail)
+POST {{baseUrl}}/api/wishlist/items/17

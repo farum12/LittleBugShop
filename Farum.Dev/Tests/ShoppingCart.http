@@ -1,0 +1,222 @@
+@WebApplication1_HostAddress = http://localhost:5052
+
+### Login as User
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Save user token
+@userToken = <paste-token-here>
+
+### Get cart (should be empty initially or create new)
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Add first item to cart
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 17,
+  "quantity": 2
+}
+
+### Add second item to cart
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 18,
+  "quantity": 1
+}
+
+### Add third item
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 19,
+  "quantity": 3
+}
+
+### Get cart with all items
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Add more quantity to existing item (should merge)
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 17,
+  "quantity": 1
+}
+
+### Get cart (should show product 17 with quantity 3)
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Save item ID from cart response
+@itemId = <paste-item-id-here>
+
+### Update cart item quantity
+PUT {{WebApplication1_HostAddress}}/api/cart/items/{{itemId}}
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "quantity": 5
+}
+
+### Try to add more than available stock (should fail)
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 35,
+  "quantity": 10
+}
+
+### Add product with low stock
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 35,
+  "quantity": 1
+}
+
+### Try to update quantity beyond stock (should fail)
+PUT {{WebApplication1_HostAddress}}/api/cart/items/{{itemId}}
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "quantity": 1000
+}
+
+### Remove item from cart
+DELETE {{WebApplication1_HostAddress}}/api/cart/items/{{itemId}}
+Authorization: Bearer {{userToken}}
+
+### Get cart after removal
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Add items for checkout test
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 15,
+  "quantity": 2
+}
+
+###
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 16,
+  "quantity": 1
+}
+
+### Get cart before checkout
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Check product stock before checkout
+GET {{WebApplication1_HostAddress}}/api/products/15
+
+### Checkout cart (converts to order and clears cart)
+POST {{WebApplication1_HostAddress}}/api/cart/checkout
+Authorization: Bearer {{userToken}}
+
+### Verify cart is empty after checkout
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Check product stock after checkout (should be decreased)
+GET {{WebApplication1_HostAddress}}/api/products/15
+
+### Verify order was created
+GET {{WebApplication1_HostAddress}}/api/orders/my-orders
+Authorization: Bearer {{userToken}}
+
+### Add items to test clear cart
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 20,
+  "quantity": 2
+}
+
+###
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 21,
+  "quantity": 3
+}
+
+### Get cart with items
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Clear entire cart
+DELETE {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Verify cart is empty
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Try to checkout empty cart (should fail)
+POST {{WebApplication1_HostAddress}}/api/cart/checkout
+Authorization: Bearer {{userToken}}
+
+### Test cart isolation - Login as User2
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User2",
+  "password": "password2"
+}
+
+### Save User2 token
+@user2Token = <paste-token-here>
+
+### Add item to User2's cart
+POST {{WebApplication1_HostAddress}}/api/cart/items
+Authorization: Bearer {{user2Token}}
+Content-Type: application/json
+
+{
+  "productId": 24,
+  "quantity": 1
+}
+
+### Get User2's cart (should only have their items)
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{user2Token}}
+
+### Get User1's cart (should be different from User2)
+GET {{WebApplication1_HostAddress}}/api/cart
+Authorization: Bearer {{userToken}}

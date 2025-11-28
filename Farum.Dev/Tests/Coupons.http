@@ -1,0 +1,407 @@
+### Variables
+@baseUrl = http://localhost:5052
+@adminToken = YOUR_ADMIN_TOKEN
+@userToken = YOUR_USER_TOKEN
+@user2Token = YOUR_USER2_TOKEN
+
+### Login as Admin
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Login as User
+POST {{baseUrl}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+###########################################
+# COUPON VALIDATION (User)
+###########################################
+
+### Validate Valid Coupon - SAVE10
+GET {{baseUrl}}/api/coupons/validate/SAVE10
+Authorization: Bearer {{userToken}}
+
+### Validate Valid Coupon - WELCOME5
+GET {{baseUrl}}/api/coupons/validate/WELCOME5
+Authorization: Bearer {{userToken}}
+
+### Validate Expired Coupon
+GET {{baseUrl}}/api/coupons/validate/EXPIRED
+Authorization: Bearer {{userToken}}
+
+### Validate Max Uses Reached Coupon
+GET {{baseUrl}}/api/coupons/validate/LIMITED50
+Authorization: Bearer {{userToken}}
+
+### Validate Inactive Coupon
+GET {{baseUrl}}/api/coupons/validate/INACTIVE
+Authorization: Bearer {{userToken}}
+
+### Validate Non-Existent Coupon
+GET {{baseUrl}}/api/coupons/validate/FAKE
+Authorization: Bearer {{userToken}}
+
+###########################################
+# APPLY COUPON TO CART
+###########################################
+
+### Add Items to Cart First
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 17,
+  "quantity": 2
+}
+
+###
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 15,
+  "quantity": 1
+}
+
+### Get Cart Before Coupon
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Apply Percentage Coupon - SAVE10 (10% off)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "SAVE10"
+}
+
+### Get Cart After Coupon
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Remove Coupon
+DELETE {{baseUrl}}/api/cart/remove-coupon
+Authorization: Bearer {{userToken}}
+
+### Apply Fixed Amount Coupon - WELCOME5 ($5 off)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "WELCOME5"
+}
+
+### Apply Percentage Coupon - WINTER20 (20% off, limited uses)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "WINTER20"
+}
+
+### Try to Apply Expired Coupon (Should Fail)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "EXPIRED"
+}
+
+### Try to Apply Max Uses Reached Coupon (Should Fail)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "LIMITED50"
+}
+
+### Try to Apply Inactive Coupon (Should Fail)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "INACTIVE"
+}
+
+### Try to Apply Invalid Coupon (Should Fail)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "NOTREAL"
+}
+
+### Clear Cart
+DELETE {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+### Try to Apply Coupon to Empty Cart (Should Fail)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "SAVE10"
+}
+
+###########################################
+# CHECKOUT WITH COUPON
+###########################################
+
+### Add Items to Cart
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 1,
+  "quantity": 3
+}
+
+### Apply Coupon
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "SAVE10"
+}
+
+### Checkout (Coupon Usage Should Be Tracked)
+POST {{baseUrl}}/api/cart/checkout
+Authorization: Bearer {{userToken}}
+
+### Verify Cart is Empty and Coupon Removed
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}
+
+###########################################
+# ADMIN - COUPON MANAGEMENT
+###########################################
+
+### Admin: Get All Coupons
+GET {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{adminToken}}
+
+### Admin: Create New Coupon - Percentage
+POST {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "NEWYEAR25",
+  "type": 0,
+  "value": 25,
+  "expirationDate": "2026-01-31T23:59:59Z",
+  "maxUsesTotal": 200
+}
+
+### Admin: Create New Coupon - Fixed Amount
+POST {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "FREESHIP",
+  "type": 1,
+  "value": 5.00,
+  "expirationDate": null,
+  "maxUsesTotal": null
+}
+
+### Admin: Create Coupon - Duplicate Code (Should Fail)
+POST {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "SAVE10",
+  "type": 0,
+  "value": 15
+}
+
+### Admin: Create Coupon - Code Too Short (Should Fail)
+POST {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "AB",
+  "type": 0,
+  "value": 10
+}
+
+### Admin: Create Coupon - Invalid Percentage (Should Fail)
+POST {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "INVALID",
+  "type": 0,
+  "value": 150
+}
+
+### Admin: Create Coupon - Zero Value (Should Fail)
+POST {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "ZERO",
+  "type": 0,
+  "value": 0
+}
+
+### Admin: Update Coupon - Change Value
+PUT {{baseUrl}}/api/coupons/admin/coupons/1
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "value": 15
+}
+
+### Admin: Update Coupon - Deactivate
+PUT {{baseUrl}}/api/coupons/admin/coupons/3
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "isActive": false
+}
+
+### Admin: Update Coupon - Change Code
+PUT {{baseUrl}}/api/coupons/admin/coupons/2
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "code": "WELCOME10"
+}
+
+### Admin: Update Coupon - Extend Expiration
+PUT {{baseUrl}}/api/coupons/admin/coupons/4
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "expirationDate": "2026-12-31T23:59:59Z"
+}
+
+### Admin: Get Coupon Usage Statistics - Coupon ID 1
+GET {{baseUrl}}/api/coupons/admin/coupons/1/usage
+Authorization: Bearer {{adminToken}}
+
+### Admin: Get Coupon Usage Statistics - Coupon ID 3
+GET {{baseUrl}}/api/coupons/admin/coupons/3/usage
+Authorization: Bearer {{adminToken}}
+
+### Admin: Delete Coupon
+DELETE {{baseUrl}}/api/coupons/admin/coupons/6
+Authorization: Bearer {{adminToken}}
+
+### Admin: Delete Non-Existent Coupon (Should Fail)
+DELETE {{baseUrl}}/api/coupons/admin/coupons/999
+Authorization: Bearer {{adminToken}}
+
+###########################################
+# AUTHORIZATION TESTS
+###########################################
+
+### Regular User Tries to Get All Coupons (Should Fail)
+GET {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{userToken}}
+
+### Regular User Tries to Create Coupon (Should Fail)
+POST {{baseUrl}}/api/coupons/admin/coupons
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "HACKED",
+  "type": 0,
+  "value": 100
+}
+
+### Regular User Tries to Update Coupon (Should Fail)
+PUT {{baseUrl}}/api/coupons/admin/coupons/1
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "value": 99
+}
+
+### Regular User Tries to Delete Coupon (Should Fail)
+DELETE {{baseUrl}}/api/coupons/admin/coupons/1
+Authorization: Bearer {{userToken}}
+
+### No Token - Validate Coupon (Should Fail)
+GET {{baseUrl}}/api/coupons/validate/SAVE10
+
+### No Token - Apply Coupon (Should Fail)
+POST {{baseUrl}}/api/cart/apply-coupon
+Content-Type: application/json
+
+{
+  "code": "SAVE10"
+}
+
+###########################################
+# EDGE CASES
+###########################################
+
+### Apply Coupon with Lowercase Code (Should Work)
+POST {{baseUrl}}/api/cart/items
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "productId": 5,
+  "quantity": 1
+}
+
+###
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "save10"
+}
+
+### Try to Remove Coupon When None Applied (Should Fail)
+DELETE {{baseUrl}}/api/cart/remove-coupon
+Authorization: Bearer {{userToken}}
+
+### Apply Different Coupon (Should Replace Previous)
+POST {{baseUrl}}/api/cart/apply-coupon
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "code": "WELCOME5"
+}
+
+### Verify Coupon Replaced
+GET {{baseUrl}}/api/cart
+Authorization: Bearer {{userToken}}

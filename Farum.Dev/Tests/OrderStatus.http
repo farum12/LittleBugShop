@@ -1,0 +1,162 @@
+@WebApplication1_HostAddress = http://localhost:5052
+
+### Login as Admin
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Save admin token
+@adminToken = <paste-admin-token-here>
+
+### Login as regular user
+POST {{WebApplication1_HostAddress}}/api/users/login
+Content-Type: application/json
+
+{
+  "username": "User",
+  "password": "qazwsxedcrfv12345"
+}
+
+### Save user token
+@userToken = <paste-user-token-here>
+
+### Place order (User ID 2) - should create with Pending status
+POST {{WebApplication1_HostAddress}}/api/orders/place
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 17,
+      "quantity": 2
+    }
+  ]
+}
+
+### Save order ID from response
+@orderId = <paste-order-id-here>
+
+### Get all orders (Admin only) - check status is Pending
+GET {{WebApplication1_HostAddress}}/api/orders
+Authorization: Bearer {{adminToken}}
+
+### Get my orders - check status
+GET {{WebApplication1_HostAddress}}/api/orders/my-orders
+Authorization: Bearer {{userToken}}
+
+### Admin: Update order status to Processing
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Processing"
+}
+
+### Admin: Update order status to Shipped
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Shipped"
+}
+
+### Admin: Update order status to Delivered
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Delivered"
+}
+
+### Check product stock before cancellation
+GET {{WebApplication1_HostAddress}}/api/products/17
+
+### Admin: Cancel order (should restore stock)
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Cancelled"
+}
+
+### Check product stock after cancellation (should be increased)
+GET {{WebApplication1_HostAddress}}/api/products/17
+
+### User: Try to update order status (should fail - forbidden)
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId}}/status
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "status": "Processing"
+}
+
+### Place another order for cancellation test
+POST {{WebApplication1_HostAddress}}/api/orders/place
+Authorization: Bearer {{userToken}}
+Content-Type: application/json
+
+{
+  "userId": 2,
+  "items": [
+    {
+      "productId": 18,
+      "quantity": 3
+    },
+    {
+      "productId": 19,
+      "quantity": 1
+    }
+  ]
+}
+
+### Save second order ID
+@orderId2 = <paste-second-order-id-here>
+
+### Admin: Change multiple statuses (workflow test)
+# Pending -> Processing
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId2}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Processing"
+}
+
+###
+# Processing -> Shipped
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId2}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Shipped"
+}
+
+###
+# Shipped -> Delivered
+PUT {{WebApplication1_HostAddress}}/api/orders/{{orderId2}}/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{
+  "status": "Delivered"
+}
+
+### Get order to verify final status
+GET {{WebApplication1_HostAddress}}/api/orders/{{orderId2}}
+Authorization: Bearer {{userToken}}
+
+### Filter orders by status (get all orders and check different statuses)
+GET {{WebApplication1_HostAddress}}/api/orders
+Authorization: Bearer {{adminToken}}
