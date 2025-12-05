@@ -47,6 +47,21 @@ builder.Services.AddAuthentication(options =>
                 context.Token = context.Request.Cookies["AuthToken"];
             }
             return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            context.HandleResponse();
+            context.Response.StatusCode = 401;
+            context.Response.ContentType = "application/json";
+            var errorResponse = new { code = 401, message = "Authentication required. Please provide a valid JWT token." };
+            return context.Response.WriteAsJsonAsync(errorResponse);
+        },
+        OnForbidden = context =>
+        {
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            var errorResponse = new { code = 403, message = "Access forbidden. You do not have permission to perform this action." };
+            return context.Response.WriteAsJsonAsync(errorResponse);
         }
     };
 });

@@ -83,7 +83,7 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse(404, $"Product with ID {id} not found."));
             }
             return Ok(product);
         }
@@ -92,6 +92,54 @@ namespace LittleBugShop.Controllers
         [Authorize(Roles = "Admin")]
         public ActionResult<Product> CreateProduct(Product product)
         {
+            // Validate required fields
+            if (string.IsNullOrWhiteSpace(product.Name))
+            {
+                return BadRequest(new ErrorResponse(400, "Product name is required."));
+            }
+
+            if (product.Name.Length < 2)
+            {
+                return BadRequest(new ErrorResponse(400, "Product name must be at least 2 characters long."));
+            }
+
+            if (product.Name.Length > 200)
+            {
+                return BadRequest(new ErrorResponse(400, "Product name cannot exceed 200 characters."));
+            }
+
+            if (string.IsNullOrWhiteSpace(product.Author))
+            {
+                return BadRequest(new ErrorResponse(400, "Author is required."));
+            }
+
+            if (string.IsNullOrWhiteSpace(product.Genre))
+            {
+                return BadRequest(new ErrorResponse(400, "Genre is required."));
+            }
+
+            if (string.IsNullOrWhiteSpace(product.Description))
+            {
+                return BadRequest(new ErrorResponse(400, "Description is required."));
+            }
+
+            // Validate price
+            if (product.Price <= 0)
+            {
+                return BadRequest(new ErrorResponse(400, "Price must be greater than zero."));
+            }
+
+            if (product.Price > 999999.99m)
+            {
+                return BadRequest(new ErrorResponse(400, "Price cannot exceed 999,999.99."));
+            }
+
+            // Validate stock quantity
+            if (product.StockQuantity < 0)
+            {
+                return BadRequest(new ErrorResponse(400, "Stock quantity cannot be negative."));
+            }
+
             product.Id = Database.Products.Max(p => p.Id) + 1;
             Database.Products.Add(product);
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
@@ -103,7 +151,7 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse(404, $"Product with ID {id} not found."));
             }
             product.Name = updatedProduct.Name;
             product.Price = updatedProduct.Price;
@@ -117,7 +165,7 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse(404, $"Product with ID {id} not found."));
             }
             Database.Products.Remove(product);
             return NoContent();
@@ -129,7 +177,7 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse(404, $"Product with ID {id} not found."));
             }
 
             return Ok(new
@@ -150,12 +198,12 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse(404, $"Product with ID {id} not found."));
             }
 
             if (request.Quantity < 0)
             {
-                return BadRequest("Stock quantity cannot be negative.");
+                return BadRequest(new ErrorResponse(400, "Stock quantity cannot be negative."));
             }
 
             product.StockQuantity = request.Quantity;
@@ -175,12 +223,12 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse(404, $"Product with ID {id} not found."));
             }
 
             if (request.Amount <= 0)
             {
-                return BadRequest("Amount must be greater than zero.");
+                return BadRequest(new ErrorResponse(400, "Amount must be greater than zero."));
             }
 
             product.StockQuantity += request.Amount;
@@ -201,17 +249,17 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == id);
             if (product == null)
             {
-                return NotFound();
+                return NotFound(new ErrorResponse(404, $"Product with ID {id} not found."));
             }
 
             if (request.Amount <= 0)
             {
-                return BadRequest("Amount must be greater than zero.");
+                return BadRequest(new ErrorResponse(400, "Amount must be greater than zero."));
             }
 
             if (product.StockQuantity < request.Amount)
             {
-                return BadRequest($"Cannot decrease stock by {request.Amount}. Current stock: {product.StockQuantity}");
+                return BadRequest(new ErrorResponse(400, $"Cannot decrease stock by {request.Amount}. Current stock: {product.StockQuantity}"));
             }
 
             product.StockQuantity -= request.Amount;
