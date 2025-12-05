@@ -89,6 +89,7 @@ namespace LittleBugShop.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public ActionResult<Product> CreateProduct(Product product)
         {
             product.Id = Database.Products.Max(p => p.Id) + 1;
