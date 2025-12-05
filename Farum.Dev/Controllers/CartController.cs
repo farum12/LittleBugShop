@@ -17,7 +17,7 @@ namespace LittleBugShop.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new ErrorResponse(401, "User not authenticated."));
             }
 
             var userId = int.Parse(userIdClaim);
@@ -44,7 +44,7 @@ namespace LittleBugShop.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new ErrorResponse(401, "User not authenticated."));
             }
 
             var userId = int.Parse(userIdClaim);
@@ -53,19 +53,19 @@ namespace LittleBugShop.Controllers
             var product = Database.Products.FirstOrDefault(p => p.Id == request.ProductId);
             if (product == null)
             {
-                return BadRequest($"Product with ID {request.ProductId} not found.");
+                return NotFound(new ErrorResponse(404, $"Product with ID {request.ProductId} not found."));
             }
 
             // Validate quantity
             if (request.Quantity <= 0)
             {
-                return BadRequest("Quantity must be greater than zero.");
+                return BadRequest(new ErrorResponse(400, "Quantity must be greater than zero."));
             }
 
             // Check stock availability
             if (!product.IsAvailable(request.Quantity))
             {
-                return BadRequest($"Insufficient stock for '{product.Name}'. Available: {product.StockQuantity}");
+                return BadRequest(new ErrorResponse(400, $"Insufficient stock for '{product.Name}'. Available: {product.StockQuantity}"));
             }
 
             // Get or create cart
@@ -90,7 +90,7 @@ namespace LittleBugShop.Controllers
                 // Check stock for new total quantity
                 if (!product.IsAvailable(newQuantity))
                 {
-                    return BadRequest($"Cannot add {request.Quantity} more. Cart has {existingItem.Quantity}, available stock: {product.StockQuantity}");
+                    return BadRequest(new ErrorResponse(400, $"Cannot add {request.Quantity} more. Cart has {existingItem.Quantity}, available stock: {product.StockQuantity}"));
                 }
 
                 existingItem.Quantity = newQuantity;
@@ -119,7 +119,7 @@ namespace LittleBugShop.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new ErrorResponse(401, "User not authenticated."));
             }
 
             var userId = int.Parse(userIdClaim);
@@ -127,25 +127,25 @@ namespace LittleBugShop.Controllers
 
             if (cart == null)
             {
-                return NotFound("Cart not found.");
+                return NotFound(new ErrorResponse(404, "Cart not found."));
             }
 
             var cartItem = cart.Items.FirstOrDefault(i => i.Id == itemId);
             if (cartItem == null)
             {
-                return NotFound("Item not found in cart.");
+                return NotFound(new ErrorResponse(404, "Item not found in cart."));
             }
 
             if (request.Quantity <= 0)
             {
-                return BadRequest("Quantity must be greater than zero.");
+                return BadRequest(new ErrorResponse(400, "Quantity must be greater than zero."));
             }
 
             // Check stock availability
             var product = Database.Products.FirstOrDefault(p => p.Id == cartItem.ProductId);
             if (product != null && !product.IsAvailable(request.Quantity))
             {
-                return BadRequest($"Insufficient stock. Available: {product.StockQuantity}");
+                return BadRequest(new ErrorResponse(400, $"Insufficient stock. Available: {product.StockQuantity}"));
             }
 
             cartItem.Quantity = request.Quantity;
@@ -160,7 +160,7 @@ namespace LittleBugShop.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new ErrorResponse(401, "User not authenticated."));
             }
 
             var userId = int.Parse(userIdClaim);
@@ -168,13 +168,13 @@ namespace LittleBugShop.Controllers
 
             if (cart == null)
             {
-                return NotFound("Cart not found.");
+                return NotFound(new ErrorResponse(404, "Cart not found."));
             }
 
             var cartItem = cart.Items.FirstOrDefault(i => i.Id == itemId);
             if (cartItem == null)
             {
-                return NotFound("Item not found in cart.");
+                return NotFound(new ErrorResponse(404, "Item not found in cart."));
             }
 
             cart.Items.Remove(cartItem);
@@ -189,7 +189,7 @@ namespace LittleBugShop.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new ErrorResponse(401, "User not authenticated."));
             }
 
             var userId = int.Parse(userIdClaim);
@@ -197,10 +197,12 @@ namespace LittleBugShop.Controllers
 
             if (cart == null)
             {
-                return NotFound("Cart not found.");
+                return NotFound(new ErrorResponse(404, "Cart not found."));
             }
 
             cart.Items.Clear();
+            cart.AppliedCouponCode = null;
+            cart.DiscountAmount = 0;
             cart.LastUpdated = DateTime.UtcNow;
 
             return Ok(cart);
@@ -212,7 +214,7 @@ namespace LittleBugShop.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userIdClaim == null)
             {
-                return Unauthorized("User not authenticated.");
+                return Unauthorized(new ErrorResponse(401, "User not authenticated."));
             }
 
             var userId = int.Parse(userIdClaim);
@@ -220,7 +222,7 @@ namespace LittleBugShop.Controllers
 
             if (cart == null || !cart.Items.Any())
             {
-                return BadRequest("Cart is empty.");
+                return BadRequest(new ErrorResponse(400, "Cart is empty."));
             }
 
             // Validate all items have sufficient stock
@@ -229,12 +231,12 @@ namespace LittleBugShop.Controllers
                 var product = Database.Products.FirstOrDefault(p => p.Id == cartItem.ProductId);
                 if (product == null)
                 {
-                    return BadRequest($"Product '{cartItem.ProductName}' no longer exists.");
+                    return BadRequest(new ErrorResponse(400, $"Product '{cartItem.ProductName}' no longer exists."));
                 }
 
                 if (!product.IsAvailable(cartItem.Quantity))
                 {
-                    return BadRequest($"Insufficient stock for '{product.Name}'. Available: {product.StockQuantity}, In cart: {cartItem.Quantity}");
+                    return BadRequest(new ErrorResponse(400, $"Insufficient stock for '{product.Name}'. Available: {product.StockQuantity}, In cart: {cartItem.Quantity}"));
                 }
             }
 
@@ -318,17 +320,17 @@ namespace LittleBugShop.Controllers
             var cart = Database.Carts.FirstOrDefault(c => c.UserId == userId);
 
             if (cart == null || !cart.Items.Any())
-                return BadRequest(new { message = "Cart is empty" });
+                return BadRequest(new ErrorResponse(400, "Cart is empty."));
 
             // Find coupon
             var coupon = Database.Coupons.FirstOrDefault(c => c.Code.ToUpper() == request.Code.ToUpper());
             if (coupon == null)
-                return NotFound(new { message = "Invalid coupon code" });
+                return NotFound(new ErrorResponse(404, "Invalid coupon code."));
 
             // Validate coupon
             var validationResult = ValidateCoupon(coupon);
             if (!validationResult.IsValid)
-                return BadRequest(new { message = validationResult.ErrorMessage });
+                return BadRequest(new ErrorResponse(400, validationResult.ErrorMessage!));
 
             // Calculate discount
             var subtotal = cart.Subtotal;
@@ -377,10 +379,10 @@ namespace LittleBugShop.Controllers
             var cart = Database.Carts.FirstOrDefault(c => c.UserId == userId);
 
             if (cart == null)
-                return NotFound(new { message = "Cart not found" });
+                return NotFound(new ErrorResponse(404, "Cart not found."));
 
             if (string.IsNullOrEmpty(cart.AppliedCouponCode))
-                return BadRequest(new { message = "No coupon applied to cart" });
+                return BadRequest(new ErrorResponse(400, "No coupon applied to cart."));
 
             cart.AppliedCouponCode = null;
             cart.DiscountAmount = 0;
