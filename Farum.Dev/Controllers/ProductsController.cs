@@ -140,6 +140,29 @@ namespace LittleBugShop.Controllers
                 return BadRequest(new ErrorResponse(400, "Stock quantity cannot be negative."));
             }
 
+            // Validate ISBN format (optional field, but if provided must be valid)
+            if (!string.IsNullOrWhiteSpace(product.ISBN))
+            {
+                var isbn = product.ISBN.Replace("-", "").Replace(" ", "");
+                
+                // ISBN-10 or ISBN-13 validation
+                if (isbn.Length != 10 && isbn.Length != 13)
+                {
+                    return BadRequest(new ErrorResponse(400, "ISBN must be either 10 or 13 digits (hyphens and spaces are allowed)."));
+                }
+
+                if (!isbn.All(char.IsDigit))
+                {
+                    return BadRequest(new ErrorResponse(400, "ISBN must contain only digits (hyphens and spaces are allowed for formatting)."));
+                }
+
+                // Check for duplicate ISBN
+                if (Database.Products.Any(p => p.ISBN.Replace("-", "").Replace(" ", "") == isbn))
+                {
+                    return BadRequest(new ErrorResponse(400, $"A product with ISBN {product.ISBN} already exists."));
+                }
+            }
+
             product.Id = Database.Products.Max(p => p.Id) + 1;
             Database.Products.Add(product);
             return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
