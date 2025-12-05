@@ -1,0 +1,60 @@
+### Test: Create Product without authentication (should fail with 401)
+POST http://localhost:5052/api/products
+Content-Type: application/json
+
+{
+  "name": "Unauthorized Book",
+  "author": "Test Author",
+  "genre": "Fiction",
+  "price": 19.99,
+  "description": "This should fail",
+  "stockQuantity": 10
+}
+
+### Test: Login as Admin
+# @name adminLogin
+POST http://localhost:5052/api/users/login
+Content-Type: application/json
+
+{
+  "username": "admin",
+  "password": "admin123"
+}
+
+### Test: Create Product with Admin token (should succeed)
+POST http://localhost:5052/api/products
+Content-Type: application/json
+Authorization: Bearer {{adminLogin.response.body.token}}
+
+{
+  "name": "Authorized Book",
+  "author": "Admin Author",
+  "genre": "Science Fiction",
+  "price": 29.99,
+  "description": "This should work",
+  "stockQuantity": 50
+}
+
+### Test: Login as Regular User
+# @name userLogin
+POST http://localhost:5052/api/users/login
+Content-Type: application/json
+
+{
+  "username": "john_doe",
+  "password": "password123"
+}
+
+### Test: Create Product with User token (should fail with 403)
+POST http://localhost:5052/api/products
+Content-Type: application/json
+Authorization: Bearer {{userLogin.response.body.token}}
+
+{
+  "name": "Unauthorized User Book",
+  "author": "Regular User",
+  "genre": "Mystery",
+  "price": 24.99,
+  "description": "This should fail with 403",
+  "stockQuantity": 25
+}

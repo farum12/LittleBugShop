@@ -37,7 +37,7 @@ namespace LittleBugShop.Controllers
 
             var user = new User
             {
-                Id = Database.Users.Any() ? Database.Users.Max(u => u.Id) + 1 : 1,
+                Id = Database.Users.Any() ? Database.Users.ToList().Max(u => u.Id) + 1 : 1,
                 Username = request.Username,
                 Password = request.Password,
                 Email = request.Email,
