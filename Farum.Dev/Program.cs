@@ -92,6 +92,31 @@ if (app.Environment.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
+// Request logging middleware
+app.Use(async (context, next) =>
+{
+    var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+    var method = context.Request.Method;
+    var path = context.Request.Path;
+    var query = context.Request.QueryString;
+    
+    Console.WriteLine($"[{timestamp}] ➡️  {method} {path}{query}");
+    
+    // Call the next middleware
+    await next();
+    
+    var statusCode = context.Response.StatusCode;
+    var statusEmoji = statusCode switch
+    {
+        >= 200 and < 300 => "✅",
+        >= 400 and < 500 => "⚠️",
+        >= 500 => "❌",
+        _ => "ℹ️"
+    };
+    
+    Console.WriteLine($"[{timestamp}] ⬅️  {statusEmoji} {method} {path} - {statusCode}");
+});
+
 app.UseHttpsRedirection();
 app.UseRouting();
 app.UseCors("AllowAllOrigins");
