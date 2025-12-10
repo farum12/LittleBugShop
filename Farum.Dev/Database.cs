@@ -112,7 +112,7 @@ namespace LittleBugShop.Data
                 new Review { Id = 13, ProductId = 2, UserId = 3, UserName = "User2", Rating = 5, ReviewText = "Beautifully written and deeply moving. A must-read classic.", IsVerifiedPurchase = false, HelpfulCount = 16, IsHidden = false, CreatedAt = baseDate.AddDays(-14), UpdatedAt = baseDate.AddDays(-14) },
 
                 // 1984 (Product 3) - Dystopian classic
-                new Review { Id = 14, ProductId = 3, UserId = 2, UserName = "User", Rating = 5, ReviewText = "Chilling and relevant. Orwell's vision is more important than ever.", IsVerifiedPurchase = false, HelpfulCount = 18, IsHidden = false, CreatedAt = baseDate.AddDays(-23), UpdatedAt = baseDate.AddDays(-23) },
+                new Review { Id = 14, ProductId = 3, UserId = 2, UserName = "User", Rating = 5, ReviewText = "Chilling and relevant. Orwell's vision is more important than ever.", IsVerifiedPurchase = true, HelpfulCount = 18, IsHidden = false, CreatedAt = baseDate.AddDays(-23), UpdatedAt = baseDate.AddDays(-23) },
                 new Review { Id = 15, ProductId = 3, UserId = 1, UserName = "admin", Rating = 4, ReviewText = "Thought-provoking and disturbing. A bit depressing but necessary reading.", IsVerifiedPurchase = false, HelpfulCount = 9, IsHidden = false, CreatedAt = baseDate.AddDays(-17), UpdatedAt = baseDate.AddDays(-17) },
 
                 // The Hunger Games (Product 25) - Popular YA
